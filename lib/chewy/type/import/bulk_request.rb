@@ -14,11 +14,13 @@ module Chewy
         # @param suffix [String] an index name optional suffix
         # @param bulk_size [Integer] bulk size in bytes
         # @param bulk_options [Hash] options passed to the elasticsearch-api bulk method
-        def initialize(type, suffix: nil, bulk_size: nil, **bulk_options)
+        def initialize(type, options = {})
           @type = type
-          @suffix = suffix
+          @suffix = options.key?(:suffix) ? options[:suffix] : nil
+
+          bulk_size = options.key?(:bulk_size) ? options[:bulk_size] : nil
           @bulk_size = bulk_size - 1.kilobyte if bulk_size # 1 kilobyte for request header and newlines
-          @bulk_options = bulk_options
+          @bulk_options = options.delete_if { |key, value| key == :bulk_size || key == :suffix }
 
           raise ArgumentError, '`bulk_size` can\'t be less than 1 kilobyte' if @bulk_size && @bulk_size <= 0
         end
